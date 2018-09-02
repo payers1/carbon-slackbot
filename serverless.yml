@@ -1,0 +1,35 @@
+service: carbon-slackbot
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  profile: serverless
+  region: us-east-1
+  environment:
+    BUCKET: "carbon-slackbot-us-east-1-01"
+  iamRoleStatements:
+    - Effect: Allow
+      Action: sqs:sendMessage
+      Resource: "arn:aws:sqs:us-east-1:676718483588:CarbonQueue"
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+        - s3:PutObject
+        - s3:PutObjectAcl
+        - s3:GetObject
+        - s3:GetObjectAcl
+        - s3:DeleteObject
+      Resource: "arn:aws:s3:::carbon-slackbot-us-east-1-01/*"
+
+functions:
+  slack:
+    handler: slack.handler
+    events:
+      - http:
+          path: slack
+          method: post
+  carbon:
+    handler: carbon.handler
+    events:
+      - sqs: arn:aws:sqs:us-east-1:676718483588:CarbonQueue
